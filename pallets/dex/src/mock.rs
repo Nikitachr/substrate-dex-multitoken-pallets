@@ -1,4 +1,4 @@
-use crate as pallet_template;
+use crate as pallet_dex;
 use frame_support::traits::{ConstU16, ConstU64};
 use frame_system as system;
 use sp_core::H256;
@@ -6,9 +6,16 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
+use pallet_multi_token;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
+
+
+frame_support::parameter_types! {
+	pub const Fee: u64 = 3;
+}
+
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -18,7 +25,8 @@ frame_support::construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system,
-		TemplateModule: pallet_template,
+        MultiToken: pallet_multi_token,
+		Dex: pallet_dex,
 	}
 );
 
@@ -49,8 +57,21 @@ impl system::Config for Test {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
-impl pallet_template::Config for Test {
+// impl pallet_multi_token::Config for Runtime {
+// 	type Event = Event;
+// 	type WeightInfo = pallet_multi_token::weights::SubstrateWeight<Runtime>;
+// }
+
+impl pallet_multi_token::Config for Test {
 	type Event = Event;
+	type WeightInfo = pallet_multi_token::weights::SubstrateWeight<Test>;
+}
+
+
+impl pallet_dex::Config for Test {
+	type Event = Event;
+    type Fee = Fee;
+    type MultiToken = MultiToken;
 }
 
 // Build genesis storage according to the mock runtime.

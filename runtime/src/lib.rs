@@ -43,8 +43,8 @@ use pallet_transaction_payment::CurrencyAdapter;
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
-/// Import the template pallet.
-pub use pallet_template;
+pub use pallet_multi_token;
+pub use pallet_dex;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -142,6 +142,7 @@ parameter_types! {
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	pub const SS58Prefix: u8 = 42;
+	pub const Fee: u64 = 3;
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -265,11 +266,16 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
-/// Configure the pallet-template in pallets/template.
-impl pallet_template::Config for Runtime {
+impl pallet_multi_token::Config for Runtime {
 	type Event = Event;
+	type WeightInfo = pallet_multi_token::weights::SubstrateWeight<Runtime>;
 }
 
+impl pallet_dex::Config for Runtime {
+	type Event = Event;
+	type MultiToken = MultiToken;
+	type Fee = Fee;
+}
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime
@@ -286,8 +292,8 @@ construct_runtime!(
 		Balances: pallet_balances,
 		TransactionPayment: pallet_transaction_payment,
 		Sudo: pallet_sudo,
-		// Include the custom logic from the pallet-template in the runtime.
-		TemplateModule: pallet_template,
+		MultiToken: pallet_multi_token,
+		Dex: pallet_dex,
 	}
 );
 
@@ -332,7 +338,7 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
-		[pallet_template, TemplateModule]
+		[pallet_multi_token, MultiToken]
 	);
 }
 
